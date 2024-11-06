@@ -7,12 +7,12 @@ import java.io.IOException;
 public class CardGame {
     private int gameID;
     private int numberOfPlayers;
-    private String deckLocation = "Deck.txt";
+    public static String deckLocation = "Deck.txt";
     ArrayList<String> bigDeck = BigDeck.loadDeck(deckLocation);
     private Deck deck;
     private Player player;
 
-    public CardGame(int numberOfPlayers, String deckLocation) { 
+    public CardGame(int numberOfPlayers, String deckLocation ) {
         this.numberOfPlayers = numberOfPlayers;
         this.deck = new Deck(1);
         this.player = new Player(1, player.setStartingHand(), 1);
