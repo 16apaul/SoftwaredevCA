@@ -27,6 +27,8 @@ public class CardGame {
             System.out.println(i+":current id");
             player = new Player(i,i);
             player.setStartingHand(startingHand);
+            players.add(player);
+
         }
     }
 
