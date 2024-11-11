@@ -56,12 +56,7 @@ public class CardGame {
 
     public static void main(String[] args) {
 
-        /*
-         * Print the ArrayList to verify contents
-         * for (String line : deck) {
-         * System.out.println(line);
-         * }
-         */
+      
         CardGame cardGame = new CardGame();
 
     }
