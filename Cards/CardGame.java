@@ -12,7 +12,7 @@ public class CardGame {
     private int gameID; // used to identify what game is running when multiple are
     public static int numberOfPlayers; // userinput
     public static String deckLocation; // Used in the test file and is default location
-    ArrayList<String> bigDeck;
+    ArrayList<String> pack;
     private Deck deck;
     private Player player;
     public static List<Player> players = new ArrayList<>();
@@ -28,12 +28,14 @@ public class CardGame {
         deckLocation = scanner.nextLine();
 
         scanner.close();
-        bigDeck = BigDeck.loadDeck(deckLocation);
-        bigDeck.add(deckLocation);
-        for (int i = 1; i <= numberOfPlayers; i++) { // i is the card preference and playerID
-            List<Integer> startingHand = new ArrayList<>();
+        pack = Pack.loadDeck(deckLocation);
+        pack.add(deckLocation);
+        for (int i = 1; i <= numberOfPlayers; i++) { // i is the card preference and playerID, first loop goes through
+                                                     // number of players
+            List<Integer> startingHand = new ArrayList<>(); // gets the index of what cards should be gotten
             System.out.println(i + " is current loop");
-            for (int j = 1; j <= 4; j++) { // inner loop for the getting the starting hand
+            for (int j = 1; j <= 4; j++) { // inner loop for the getting the starting hand, second loop for assigning
+                                           // cards
                 startingHand.add(((j * numberOfPlayers) - (numberOfPlayers - 1)) + i - 1); // starting hand gets
                                                                                            // assigned in a round robin
                                                                                            // fashion where each player
@@ -47,6 +49,8 @@ public class CardGame {
             players.add(new Player(i, i));
             System.out.println("added player");
 
+            Pack.SplitDeck(numberOfPlayers); // splits the remaining cards into the decks
+
         }
     }
 
@@ -59,7 +63,6 @@ public class CardGame {
          * }
          */
         CardGame cardGame = new CardGame();
-        CardGame.BigDeck.SplitDeck(numberOfPlayers);
 
     }
 
@@ -78,9 +81,9 @@ public class CardGame {
 
         public void setStartingHand(List<Integer> cards) {
             for (int card : cards) {
-                startingHand.add(bigDeck.get(card - 1));// get card -1 since index starts at 0
+                startingHand.add(pack.get(card - 1));// get card -1 since index starts at 0
                 System.out.println("Player ID:" + playerID + " Chose card:" + card + " from the deck and got "
-                        + bigDeck.get(card - 1));
+                        + pack.get(card - 1));
             }
             WriteToFile("Player" + playerID + " Output", "Player Starting hand is:", false);
             WriteArrayToFile("Player" + playerID + " Output", cards, true);
@@ -90,13 +93,13 @@ public class CardGame {
     public static class Deck {
         private int deckID;
         private int numberOfCards = 8 * numberOfPlayers;
-        private List<Integer> cards = new ArrayList<>();
+        private List<String> cards = new ArrayList<>();
 
         public Deck(int deckID) {
             this.deckID = deckID;
         }
 
-        public void addCard(int cardNumber) {
+        public void addCard(String cardNumber) {
             cards.add(cardNumber); // should add card to the top of the deck, The most recent card in the list
 
         }
@@ -106,30 +109,40 @@ public class CardGame {
 
         }
 
-        public List<Integer> getCards() {
+        public List<String> getCards() {
             return cards;
 
         }
 
     }
 
-    class BigDeck {
+    class Pack {
         public static List<Deck> Decks = new ArrayList<>();
 
         // Method to load a deck from a file and return it as an ArrayList
-        public static ArrayList<String> loadDeck(String filePath) {
-            ArrayList<String> bigDeck = new ArrayList<>();
+        public static ArrayList<String> loadDeck(String filePath) throws IllegalArgumentException {
+            ArrayList<String> pack = new ArrayList<>();
+
+            
 
             try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    bigDeck.add(line); // Add each line to the ArrayList
+                    pack.add(line); // Add each line to the ArrayList
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            if (pack.size() == numberOfPlayers*8 ){
 
-            return bigDeck; // the contents of the deck never changes throughout the game
+                return pack; // the contents of the deck never changes throughout the game
+
+            } else{
+
+                throw new IllegalArgumentException("The deck size should be 8 * number of players inputted"); // error if not
+            }
+        
+
         }
 
         public static void SplitDeck(Integer numberOfPlayers) { // splits the big deck into smaller decks of the
@@ -137,7 +150,9 @@ public class CardGame {
             ArrayList<String> startingDeck = new ArrayList<>();
             ArrayList<String> remainingCards = new ArrayList<>();
             Deck deck;
-            startingDeck = BigDeck.loadDeck(deckLocation);
+            List<Integer> startingCards = new ArrayList<>(); // gets index of what cards should get drawn from big deck
+
+            startingDeck = Pack.loadDeck(deckLocation);
 
             for (int index = (startingDeck.size() / 2) + 1; index <= startingDeck.size(); index++) { // loop to get the
                                                                                                      // remaining cards
@@ -149,12 +164,20 @@ public class CardGame {
                 remainingCards.add(startingDeck.get(index - 1));
             }
             // loop should go through the remaing cards and split it to the decks
-            for (int index = 1; index <= numberOfPlayers; index++) { // first loop shold create as many decks as players
-                deck = new Deck(index);
+            for (int i = 1; i <= numberOfPlayers; i++) { // first loop shold create as many decks as players
+                deck = new Deck(i); 
                 decks.add(deck);
-                System.out.println("created deck with ID:" + index);
-                // TODO second loop should assign remaining cards to the deck in a round robin fashon
+                System.out.println("created deck with ID:" + i);
+                for (int j = 1; j <= 4; j++) { // second loop assigns them cards
+                    startingCards.add(((j * numberOfPlayers) - (numberOfPlayers - 1)) + i - 2); // deck gets assigned
+                                                                                                // cards in a round
+                                                                                                // robin fashion
+                    String card = remainingCards.get(((j * numberOfPlayers) - (numberOfPlayers - 1)) + i - 2);
+                    deck.addCard(card);
+                    System.out.println("card:"+ card + " has been successfully added to deck:"+ i);
 
+
+                }
 
             }
 
