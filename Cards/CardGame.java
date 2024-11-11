@@ -10,12 +10,13 @@ import java.util.Scanner;
 
 public class CardGame {
     private int gameID; // used to identify what game is running when multiple are
-    private int numberOfPlayers; // userinput
+    public static int numberOfPlayers; // userinput
     public static String deckLocation; // Used in the test file and is default location
     ArrayList<String> bigDeck;
     private Deck deck;
     private Player player;
-    public static List<Player> players = new ArrayList<>();;
+    public static List<Player> players = new ArrayList<>();
+    public static List<Deck> decks = new ArrayList<>();
 
     public CardGame() {
         Scanner scanner = new Scanner(System.in); // scanner to get user input
@@ -58,6 +59,7 @@ public class CardGame {
          * }
          */
         CardGame cardGame = new CardGame();
+        CardGame.BigDeck.SplitDeck(numberOfPlayers);
 
     }
 
@@ -80,46 +82,82 @@ public class CardGame {
                 System.out.println("Player ID:" + playerID + " Chose card:" + card + " from the deck and got "
                         + bigDeck.get(card - 1));
             }
-            WriteToFile("Player" + playerID+ " Output", "Player Starting hand is:", false);
-            WriteArrayToFile("Player" + playerID+ " Output", cards, true);
+            WriteToFile("Player" + playerID + " Output", "Player Starting hand is:", false);
+            WriteArrayToFile("Player" + playerID + " Output", cards, true);
         }
     }
 
-    class Deck {
+    public static class Deck {
         private int deckID;
         private int numberOfCards = 8 * numberOfPlayers;
+        private List<Integer> cards = new ArrayList<>();
 
         public Deck(int deckID) {
             this.deckID = deckID;
         }
 
-        class card {
-            private int cardValue;
-
-            public card(int cardValue) {
-                this.cardValue = cardValue;
-
-            }
+        public void addCard(int cardNumber) {
+            cards.add(cardNumber); // should add card to the top of the deck, The most recent card in the list
 
         }
+
+        public void removeCard() {
+            cards.removeLast(); // should remove card to the top of the deck, The most recent card in the list
+
+        }
+
+        public List<Integer> getCards() {
+            return cards;
+
+        }
+
     }
 
     class BigDeck {
+        public static List<Deck> Decks = new ArrayList<>();
 
         // Method to load a deck from a file and return it as an ArrayList
         public static ArrayList<String> loadDeck(String filePath) {
-            ArrayList<String> deck = new ArrayList<>();
+            ArrayList<String> bigDeck = new ArrayList<>();
 
             try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    deck.add(line); // Add each line to the ArrayList
+                    bigDeck.add(line); // Add each line to the ArrayList
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            return deck; // the contents of the deck never changes throughout the game
+            return bigDeck; // the contents of the deck never changes throughout the game
+        }
+
+        public static void SplitDeck(Integer numberOfPlayers) { // splits the big deck into smaller decks of the
+                                                                // required size without accounting for starting hand
+            ArrayList<String> startingDeck = new ArrayList<>();
+            ArrayList<String> remainingCards = new ArrayList<>();
+            Deck deck;
+            startingDeck = BigDeck.loadDeck(deckLocation);
+
+            for (int index = (startingDeck.size() / 2) + 1; index <= startingDeck.size(); index++) { // loop to get the
+                                                                                                     // remaining cards
+                                                                                                     // after the
+                                                                                                     // starting hands
+                                                                                                     // has been
+                                                                                                     // assigned
+                System.out.println("remaining cards are:" + startingDeck.get(index - 1));
+                remainingCards.add(startingDeck.get(index - 1));
+            }
+            // loop should go through the remaing cards and split it to the decks
+            for (int index = 1; index <= numberOfPlayers; index++) { // first loop shold create as many decks as players
+                deck = new Deck(index);
+                decks.add(deck);
+                System.out.println("created deck with ID:" + index);
+                // TODO second loop should assign remaining cards to the deck in a round robin fashon
+
+
+            }
+
         }
     }
 
@@ -136,15 +174,15 @@ public class CardGame {
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 
             bufferedWriter.write(message);
-            bufferedWriter.newLine(); 
+            bufferedWriter.newLine();
 
             bufferedWriter.close();
 
-            System.out.println("File written successfully!");
+            System.out.println("File written successfully");
 
         } catch (IOException e) {
             // Handle any potential exceptions
-            System.out.println("An error occurred while writing to the file.");
+            System.out.println("An error occurred while writing to the file");
             e.printStackTrace();
         }
     }
@@ -163,10 +201,10 @@ public class CardGame {
                 }
             }
 
-            System.out.println("Array written to file successfully!");
+            System.out.println("Array written to file successfully");
 
         } catch (IOException e) {
-            System.out.println("An error occurred while writing to the file.");
+            System.out.println("An error occurred while writing to the file");
             e.printStackTrace();
         }
     }
