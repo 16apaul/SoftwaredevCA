@@ -56,7 +56,7 @@ public class CardGame {
 
     public static void main(String[] args) {
 
-      
+        
         CardGame cardGame = new CardGame();
 
     }
@@ -88,7 +88,7 @@ public class CardGame {
     public static class Deck {
         private int deckID;
         private int numberOfCards = 8 * numberOfPlayers;
-        private List<String> cards = new ArrayList<>();
+        private List<String> cards = new ArrayList<>(); // stores string because makes it easire to out it
 
         public Deck(int deckID) {
             this.deckID = deckID;
