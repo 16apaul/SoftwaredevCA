@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,19 +16,69 @@ public class CardGame extends Thread {
     private Player player;
     public static List<Player> players = new ArrayList<>();
     public static List<Deck> decks = new ArrayList<>();
+    boolean validInput = false; // boolean to check if user entered valid input
+    boolean validPack = false;
 
     public CardGame() {
         Scanner scanner = new Scanner(System.in); // scanner to get user input
+        while (!validInput) {
 
-        System.out.print("Enter number of players in game: ");
-        numberOfPlayers = scanner.nextInt();
+            try { // this try statement makes sure user only enters numbers and the numbers are
+                  // above 0
+                System.out.print("Enter number of players in game: ");
+                numberOfPlayers = scanner.nextInt();
+                if (numberOfPlayers <= 0) {
+                    System.out.println("Number of players must be greater than 0.");
+                } else {
+                    validInput = true; // Exit the loop if input is valid
+                }
+
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid integer.");
+                scanner.next(); // Clear the invalid input from the scanner
+            }
+        }
+
+        boolean validPack = false; // Initialize validPack
         scanner.nextLine();
-        System.out.print("Enter deck location: ");
-        deckLocation = scanner.nextLine();
+
+        while (!validPack) {
+            System.out.print("Enter deck location: ");
+            deckLocation = scanner.nextLine(); // Read user input
+            pack = Pack.loadDeck(deckLocation); // Load the pack
+
+            // Check if the pack is empty
+            if (pack == null || pack.isEmpty()) {
+                System.out.println("Invalid pack: pack is empty or does not exist.");
+                continue; // Restart the loop
+            }
+
+            // Check if the pack has the correct number of cards
+            if (pack.size() != 8 * numberOfPlayers) {
+                System.out.println("Invalid pack: number of cards should be 8 * number of players.");
+                continue; // Restart the loop
+            }
+
+            // Check if all cards in the pack are integers
+            boolean allCardsAreIntegers = true;
+            for (String card : pack) {
+                try {
+                    Integer.parseInt(card); // check if card is integer
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid pack: not all cards in the pack are integers.");
+                    allCardsAreIntegers = false;
+                    break; // Exit the loop if one card is invalid
+                }
+            }
+
+            // If checks pass, mark the pack as valid
+            if (allCardsAreIntegers) {
+                validPack = true;
+                System.out.println("Pack is valid!");
+            }
+        }
 
         scanner.close();
-        pack = Pack.loadDeck(deckLocation);
-        pack.add(deckLocation);
         for (int i = 1; i <= numberOfPlayers; i++) { // i is the card preference and playerID, first loop goes through
                                                      // number of players
             List<String> startingHand = new ArrayList<>(); // gets the index of what cards should be gotten
@@ -45,11 +96,9 @@ public class CardGame extends Thread {
             System.out.println(i + ":current id");
             player = new Player(i, i);
             player.setStartingHand(startingHand);
-            
+
             players.add(player);
             System.out.println("added player");
-
-            
 
         }
         Pack.SplitDeck(numberOfPlayers); // splits the remaining cards into the decks and creates the decks
@@ -69,34 +118,30 @@ public class CardGame extends Thread {
                 e.printStackTrace();
             }
         }
-       if (player.playerWon == true){
-        for (int i = 1; i <= numberOfPlayers; i++) {
-            WriteToFile("Deck" + i + " Output", "final cards are:", false);                 
-            WriteArrayToFile("Deck"+i+" Output",decks.get(i-1).getCards() ,true); 
-        }}
-       
+        if (player.playerWon == true) {
+            for (int i = 1; i <= numberOfPlayers; i++) {
+                WriteToFile("Deck" + i + " Output", "final cards are:", false); // if any player won all players final hand is shown 
+                WriteArrayToFile("Deck" + i + " Output", decks.get(i - 1).getCards(), true);
+            }
+        }
 
     }
-    
 
     public static void main(String[] args) {
 
         CardGame cardGame1 = new CardGame();
-        
-        
+
     }
 
     class Player {
         private int playerID; // starts at 1
         // deckOfDrawID
         // deckOfDiscardID
-        private List<String> startingHand = new ArrayList<>();
+        private List<String> startingHand = new ArrayList<>(); // The hand players starts with
         private int cardPreference;
-        private static volatile boolean playerWon = false;  // Shared flag for all threads
+        private static volatile boolean playerWon = false; // Shared flag for all threads
         private Thread drawDiscardThread;
 
-
-        
         public Player(int playerID, int cardPreference) {
 
             this.cardPreference = cardPreference;
@@ -107,9 +152,9 @@ public class CardGame extends Thread {
             for (String card : cards) {
                 System.out.println("Player ID:" + playerID + " Chose card:" + card + " from the pack and got "
                         + pack.get(Integer.parseInt(card) - 1));
-                        this.startingHand.add(pack.get(Integer.parseInt(card) - 1)) ;
+                this.startingHand.add(pack.get(Integer.parseInt(card) - 1));
             }
-            System.out.println(startingHand.size()+": is starting hand size");
+            System.out.println(startingHand.size() + ": is starting hand size");
             WriteToFile("Player" + playerID + " Output", "Player Starting hand is: ", false);
             WriteArrayToFile("Player" + playerID + " Output", startingHand, true);
         }
@@ -121,9 +166,7 @@ public class CardGame extends Thread {
         public void startDrawDiscardThread() { // draws from their left which will be their ID
             // then discards to their right the last player
 
-            
-
-           drawDiscardThread = new Thread(() -> {
+            drawDiscardThread = new Thread(() -> {
                 int deckOfDrawID = playerID; // what deck player draws from
                 int deckOfDiscardID = playerID + 1; // what deck player discads to
                 if (deckOfDiscardID > numberOfPlayers) { // discards to deck 1 if deck exceeds player count
@@ -131,14 +174,12 @@ public class CardGame extends Thread {
 
                 }
                 List<String> hand = getStartingHand();
-                String currentCard;
-                Deck currentDeck;
+                String currentCard; // card that the player is deciding to keep or discard
+                Deck currentDeck; // deck that the player is drawing from or discarding to
                 String deckCard; // remove from deck add to player
                 String playerCard; // remove from player add to deck
 
-                
-
-                synchronized (this) { 
+                synchronized (this) {
                     if (startingHand.isEmpty()) {
                         System.out.println("Error: Starting hand is empty for player " + playerID);
                         return;
@@ -146,24 +187,22 @@ public class CardGame extends Thread {
                 }
                 while (playerWon == false) {
 
-                    
-                    boolean allCardsMatch = hand.stream().allMatch(card -> card.equals(hand.get(0)));
+                    boolean allCardsMatch = hand.stream().allMatch(card -> card.equals(hand.get(0)));// if card match
+                                                                                                     // the first index
 
                     if (allCardsMatch) {
                         System.out.println("Player " + playerID + " has won!");
-                        WriteToFile("Player" + playerID + " output","Winning hand is: ",true);
+                        WriteToFile("Player" + playerID + " output", "Winning hand is: ", true);
 
-                        playerWon= true;
+                        playerWon = true;
                         break;
                     }
 
+                    for (int index = 0; index < 4; index++) { // loop goes through the cards in player hand
 
-                    for (int index = 0; index < 4; index++) { // loop goes through the cards
-                        
-                       
-                        currentCard = hand.get(index); // get the specidied card
+                        currentCard = hand.get(index); // get the specified card
                         if (currentCard.equals(String.valueOf(cardPreference))) { // do nothing if card preference
-                            System.out.println("this is running");
+
                         } else {
                             System.out.println(currentCard + cardPreference);
 
@@ -175,8 +214,15 @@ public class CardGame extends Thread {
                                                 + deckCard,
                                         true);
                                 currentDeck.removeCard(); // removes the last card from the deck
-                                hand.add(deckCard); // places card to hand
+                                if (index<3){
+                                hand.add(index + 1, deckCard); // places card to hand between where card is going to be
+                                                               // removed and next card of the player this makes sure
+                                                               // players don't
+                                                               // hold on to a card indefinately
 
+                                } else if(index == 3){ // if last card add it on the end
+                                    hand.add(deckCard);
+                                }
 
                             }
 
@@ -188,7 +234,7 @@ public class CardGame extends Thread {
                                         "Player " + playerID + " discards to deck " + deckOfDiscardID + " and discards "
                                                 + playerCard,
                                         true);
-                                hand.remove(index); // removes the card
+                                hand.remove(index); // removes the card from the index
                                 currentDeck.addCard(playerCard); // places that card in the deck at the bottom
 
                             }
@@ -198,30 +244,29 @@ public class CardGame extends Thread {
 
                         if (allCardsMatch) {
                             System.out.println("Player " + playerID + " has won!");
-                            WriteToFile("Player" + playerID + " output","Winning hand is: ",true);
-    
-                            playerWon= true;
+                            WriteToFile("Player" + playerID + " output", "Winning hand is: ", true);
+
+                            playerWon = true;
                             break;
                         }
                     }
 
-                    
                 }
-                WriteToFile("Player" + playerID + " output", "final hand:",true);
+                WriteToFile("Player" + playerID + " output", "final hand:", true);
 
-                WriteArrayToFile("Player" + playerID + " output", hand,true);
+                WriteArrayToFile("Player" + playerID + " output", hand, true);
                 System.out.println("Thread has stopped for ID:" + playerID);
 
             });
             drawDiscardThread.start();
-            
-            
+
         }
+
         public void joinDrawDiscardThread() throws InterruptedException {
             if (drawDiscardThread != null) {
                 drawDiscardThread.join();
-            }}
-        
+            }
+        }
 
         public int getPlayerID() {
             return playerID;
@@ -231,7 +276,6 @@ public class CardGame extends Thread {
             return cardPreference;
         }
 
-    
     }
 
     public static class Deck {
@@ -265,11 +309,12 @@ public class CardGame extends Thread {
     }
 
     class Pack {
-        public static List<Deck> Decks = new ArrayList<>();
+        public static List<Deck> Decks = new ArrayList<>(); // pack will store a list of decks
 
         // Method to load a deck from a file and return it as an ArrayList
         public static ArrayList<String> loadDeck(String filePath) {
-            ArrayList<String> pack = new ArrayList<>();
+            boolean validPack = false;
+            ArrayList<String> pack = new ArrayList<>(); // reads file a puts all values in one arraylist
 
             try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
                 String line;
@@ -277,6 +322,7 @@ public class CardGame extends Thread {
                     pack.add(line); // Add each line to the ArrayList
                 }
             } catch (IOException e) {
+                System.out.println("Enter valid path");
                 e.printStackTrace();
             }
 
@@ -336,7 +382,7 @@ public class CardGame extends Thread {
 
             bufferedWriter.close();
 
-            System.out.println("File written successfully "+fileName);
+            System.out.println("File written successfully " + fileName);
 
         } catch (IOException e) {
             // Handle any potential exceptions
@@ -360,7 +406,7 @@ public class CardGame extends Thread {
             }
             bufferedWriter.newLine();
 
-            System.out.println("Array written to file successfully "+fileName);
+            System.out.println("Array written to file successfully " + fileName);
 
         } catch (IOException e) {
             System.out.println("An error occurred while writing to the file");
