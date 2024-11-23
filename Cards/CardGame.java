@@ -12,12 +12,12 @@ import java.util.Scanner;
 public class CardGame extends Thread {
     public static int numberOfPlayers; // userinput
     public static String deckLocation; // Used in the test file and is default location
-    ArrayList<String> pack;
-    private Player player;
-    public static List<Player> players = new ArrayList<>();
-    public static List<Deck> decks = new ArrayList<>();
+    ArrayList<String> pack; // stores contents of pack
+    private Player player; // player class that will be created andd added to the players list
+    public static List<Player> players = new ArrayList<>(); // stores all players in the game
+    public static List<Deck> decks = new ArrayList<>(); // stores all decks in the game
     boolean validInput = false; // boolean to check if user entered valid input
-    boolean validPack = false;
+    boolean validPack = false; // to check if user entered valid pack
 
     public CardGame() {
         Scanner scanner = new Scanner(System.in); // scanner to get user input
@@ -39,7 +39,6 @@ public class CardGame extends Thread {
             }
         }
 
-        boolean validPack = false; // Initialize validPack
         scanner.nextLine();
 
         while (!validPack) {
@@ -120,7 +119,8 @@ public class CardGame extends Thread {
         }
         if (player.playerWon == true) {
             for (int i = 1; i <= numberOfPlayers; i++) {
-                WriteToFile("Deck" + i + " Output", "final cards are:", false); // if any player won all players final hand is shown 
+                WriteToFile("Deck" + i + " Output", "final cards are:", false); // if any player won all the final cards
+                                                                                // of deck is shown
                 WriteArrayToFile("Deck" + i + " Output", decks.get(i - 1).getCards(), true);
             }
         }
@@ -135,8 +135,6 @@ public class CardGame extends Thread {
 
     class Player {
         private int playerID; // starts at 1
-        // deckOfDrawID
-        // deckOfDiscardID
         private List<String> startingHand = new ArrayList<>(); // The hand players starts with
         private int cardPreference;
         private static volatile boolean playerWon = false; // Shared flag for all threads
@@ -214,13 +212,15 @@ public class CardGame extends Thread {
                                                 + deckCard,
                                         true);
                                 currentDeck.removeCard(); // removes the last card from the deck
-                                if (index<3){
-                                hand.add(index + 1, deckCard); // places card to hand between where card is going to be
-                                                               // removed and next card of the player this makes sure
-                                                               // players don't
-                                                               // hold on to a card indefinately
+                                if (index < 3) {
+                                    hand.add(index + 1, deckCard); // places card to hand between where card is going to
+                                                                   // be
+                                                                   // removed and next card of the player this makes
+                                                                   // sure
+                                                                   // players don't
+                                                                   // hold on to a card indefinately
 
-                                } else if(index == 3){ // if last card add it on the end
+                                } else if (index == 3) { // if last card add it on the end
                                     hand.add(deckCard);
                                 }
 
@@ -244,7 +244,9 @@ public class CardGame extends Thread {
 
                         if (allCardsMatch) {
                             System.out.println("Player " + playerID + " has won!");
-                            WriteToFile("Player" + playerID + " output", "Winning hand is: ", true);
+                            WriteToFile("Player" + playerID + " output", "Winning hand is: ", true); // writes to the
+                                                                                                     // specified file
+                                                                                                     // who won
 
                             playerWon = true;
                             break;
@@ -292,7 +294,7 @@ public class CardGame extends Thread {
         }
 
         public synchronized void removeCard() {
-            cards.removeLast(); // should remove card to the top of the deck, The most recent card in the list
+            cards.removeLast(); // should remove card to the top of the deck, 
 
         }
 
