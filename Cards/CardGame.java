@@ -287,14 +287,17 @@ public class CardGame extends Thread {
         public Deck(int deckID) {
             this.deckID = deckID;
         }
+        public void addStartingCard(String cardNumber){ // this is run at the start of the game to add cards to the deck in a round robin
+            cards.add(cardNumber);
 
+        }
         public synchronized void addCard(String cardNumber) {
-            cards.add(0, cardNumber); // should add card to the bottom of the deck, The most recent card in the list
+            cards.add(0, cardNumber); // should add card to the bottom of the deck when removed from player's hand 
 
         }
 
         public synchronized void removeCard() {
-            cards.removeLast(); // should remove card to the top of the deck, 
+            cards.removeLast(); // should remove card to the top of the deck when player want to draw
 
         }
 
@@ -311,7 +314,6 @@ public class CardGame extends Thread {
     }
 
     class Pack {
-        public static List<Deck> Decks = new ArrayList<>(); // pack will store a list of decks
 
         // Method to load a deck from a file and return it as an ArrayList
         public static ArrayList<String> loadDeck(String filePath) {
@@ -332,8 +334,8 @@ public class CardGame extends Thread {
 
         }
 
-        public static void SplitDeck(Integer numberOfPlayers) { // splits the big deck into smaller decks of the
-                                                                // required size without accounting for starting hand
+        public static void SplitDeck(Integer numberOfPlayers) { // splits the pack into smaller decks of the
+                                                                // required size without accounting for the starting hand of the players
             List<String> startingDeck = new ArrayList<>();
             List<String> remainingCards = new ArrayList<>();
             Deck deck;
@@ -358,7 +360,7 @@ public class CardGame extends Thread {
                 for (int j = 1; j <= 4; j++) { // second loop assigns them cards
                     // deck gets assigned cards in a round robin fashion
                     String card = remainingCards.get(((j * numberOfPlayers) - (numberOfPlayers - 1)) + i - 2);
-                    deck.addCard(card);
+                    deck.addStartingCard(card);
                     System.out.println("card:" + card + " has been successfully added to deck:" + i);
 
                 }
