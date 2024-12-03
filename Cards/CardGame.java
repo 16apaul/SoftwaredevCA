@@ -227,7 +227,7 @@ public class CardGame extends Thread {
                             }
 
                             synchronized (decks.get(deckOfDiscardID - 1)) {
-                                currentDeck = decks.get(deckOfDiscardID - 1);// get deck player discards to from
+                                currentDeck = decks.get(deckOfDiscardID - 1);// get deck player discards to 
 
                                 playerCard = hand.get(index); // stores card that player discards
                                 WriteToFile("Player" + playerID + " output",
